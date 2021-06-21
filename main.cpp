@@ -103,6 +103,7 @@ double evaluar(string p) {
 }
 
 
+
 bool ExpCorrecta(string str) {
     //voy a agarrar el string y si la ultima posicion del string es alguno de los operadores retorno false, y si no retorno true
     int tam = str.size();
@@ -226,35 +227,120 @@ string BuscarEnFile(string exp) {
     return exp;
 }
 
+void tests(string exp, double respuesta) {
+   
+    string expresion;
+    auto ans=0.0; //feature v11 c++
+
+    exp = BuscarEnFile(exp);
+
+    if (ExpCorrecta(exp)) {
+        expresion = convertir(exp);
+        ans = evaluar(expresion);
+
+        if (ans == respuesta) {
+            cout << exp << ":" << endl;
+            printf("\x1B[32mTest Passed\033[0m");
+            ans = 0;
+            cout << endl;
+        }else if (respuesta != ans) {
+            cout << exp << ":" << endl;
+            printf("\x1B[31mTest Failed \033[0m");
+            cout << endl;
+            ans = 0;
+        }
+    
+    }
+    
+    
+    if (ExpCorrecta(exp) == false) {
+        cout << exp << ":" << endl;
+        printf("\x1B[31mTest Failed \033[0m");
+        cout << endl;
+        ans = 0;
+    }
+
+}
+
+void unit_Tests() {
+    //buenas
+    tests("3^2", 9.0);
+    tests("100+x", 500.0);
+    tests("(7)+3+e", 12.71828);
+    tests("50.0+y", 350.0);
+    tests("1+2+3+4+5+6+7+8+9", 45.0);
+    cout << endl;
+
+    //malas
+    tests("1+10", 2.0);
+    tests("10+e", 16.0);
+    tests("500+x", 3.0);
+    tests("2^2", 2.0);
+    tests("1+", 3.0);
+
+
+
+}
+
 int main() {
 
     string s, p;
     int tam = s.size();
+    int Opcion;
 
-    while (true) {
-        cout << "\n";
-        cout << "Ingrese expresion: ";
-        cin >> s;
-        
+    do {
+        cout << endl;
+        cout << "## Menu Evaluador de Expresiones ##" << endl;
+        cout << "==================================================" << endl;
+        cout << "1. Ingresar Expresion (Manualmente)" << endl;
+        cout << "2. Unit Tests" << endl;
+        cout << "3. Salir" << endl;
+        cout << "==================================================" << endl;
+        cout << "Ingresar Opcion: ";
+        cin >> Opcion;
+        cout << endl;
 
-        //Resivar variables (constantes) en el archivo si estan reemplazarlos
-        s = BuscarEnFile(s);
+        switch (Opcion) {
+        case 1:
+            do {
+                cout << "\n";
+                cout << "0 para salir" << endl;
+                cout << "Ingrese expresion: ";
+                cin >> s;
 
 
-        //Darle valor a las variables que no estan en el archivo de constantes
-        s = ValidarVariables(s);
+                //Resivar variables (constantes) en el archivo si estan reemplazarlos
+                s = BuscarEnFile(s);
+
+
+                //Darle valor a las variables que no estan en el archivo de constantes
+                s = ValidarVariables(s);
+
+
+                if (ExpCorrecta(s)) {
+                    p = convertir(s);
+                    cout << "Posfija: " << p << endl;
+                    cout << "Evaluada: " << evaluar(p) << endl;
+                }
+                else {
+                    cout << "Expresion ingresada incorrectamente :(" << endl;
+                    cout << "\n";
+                }
+            } while (s != "0");
+            break;
+
+        case 2:
+            unit_Tests();
+            break; 
+
+        case 3:
+            cout << "Saliendo del sistema :)" << endl;
+            break;
+        }
        
+    } while (Opcion != 3);
 
-        if (ExpCorrecta(s)) {
-            p = convertir(s);
-            cout << "Posfija: " << p << endl;
-            cout << "Evaluada: " << evaluar(p) << endl;
-        }
-        else {
-            cout << "Expresion ingresada incorrectamente :(" << endl;
-            cout << "\n";
-        }
-    }
+
 
     
 }
