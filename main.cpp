@@ -102,8 +102,6 @@ double evaluar(string p) {
     return pila.top();
 }
 
-
-
 bool ExpCorrecta(string str) {
     //voy a agarrar el string y si la ultima posicion del string es alguno de los operadores retorno false, y si no retorno true
     int tam = str.size();
@@ -129,6 +127,8 @@ bool ExpCorrecta(string str) {
             case '-': return false;
                 break;
             case '%': return false;
+                break;
+            case '(': return false;
                 break;
             default: return true;
                 break;
@@ -168,6 +168,27 @@ string ValidarVariables(string str) {
     }
 
     //cout << "Expresion nueva: " << str;
+    return str;
+}
+
+string ValidarVariables_V2(string str) {
+
+    char arrABC[] = {'a','b','c','d','e','f','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
+    int arrSize = sizeof(arrABC) / sizeof(arrABC[0]);
+    char valor;
+
+    for (int i = 0; i < str.size(); i++) {
+        for (int j = 0; j < arrSize; j++) {
+            if (str[i] == arrABC[j]) {
+
+                cout << "Ingrese valor para variable -> " << str[i] << " :";
+                cin >> valor;
+
+                //igualamos la posicion al valor indicado
+                str[i] = valor;
+            }
+        }
+    }
     return str;
 }
 
@@ -276,7 +297,7 @@ void unit_Tests() {
     tests("10+e", 16.0);
     tests("500+x", 3.0);
     tests("2^2", 2.0);
-    tests("1+", 3.0);
+    tests("1+(", 3.0);
 
 
 
@@ -314,7 +335,7 @@ int main() {
 
 
                 //Darle valor a las variables que no estan en el archivo de constantes
-                s = ValidarVariables(s);
+                s = ValidarVariables_V2(s);
 
 
                 if (ExpCorrecta(s)) {
@@ -339,8 +360,4 @@ int main() {
         }
        
     } while (Opcion != 3);
-
-
-
-    
 }
