@@ -4,10 +4,10 @@
 #include <stack>
 #include <string>
 #include <fstream>
+#include <filesystem>
 
 using namespace std;
-
-
+namespace arch = std::filesystem;
 
 int prioridad(char op) {
     switch (op) {
@@ -21,16 +21,16 @@ int prioridad(char op) {
     }
 }
 
-string convertir(string in) {
+string convertir(string exp) {
     stack<char> pila;
-    string posf = "";
-    for (int i = 0; i < in.size(); i++) {
-        switch (in[i]) {
+    string posf = ""; //postfija
+    for (int i = 0; i < exp.size(); i++) {
+        switch (exp[i]) { //evaluamos cada char de la exp
         case '(':
             pila.push('(');
             break;
         case ')':
-            while (!pila.empty() && pila.top() != '(') {
+            while (!pila.empty() && pila.top() != '(') { 
                 posf += string(1, pila.top()) + " ";
                 pila.pop();
             }
@@ -41,15 +41,15 @@ string convertir(string in) {
         case '*':
         case '/':
         case '^':
-            while (!pila.empty() && prioridad(in[i]) <= prioridad(pila.top())) {
+            while (!pila.empty() && prioridad(exp[i]) <= prioridad(pila.top())) { //cualquiera de los casos anteriores 
                 posf += string(1, pila.top()) + " ";
                 pila.pop();
             }
-            pila.push(in[i]);
+            pila.push(exp[i]);
             break;
         default:
-            while (isdigit(in[i]) || in[i] == '.')
-                posf += string(1, in[i++]);
+            while (isdigit(exp[i]) || exp[i] == '.')
+                posf += string(1, exp[i++]);
             posf += " ";
             i--;
         }
@@ -69,7 +69,7 @@ double evaluar(string p) {
         case '^':
             op2 = pila.top(); pila.pop();
             op1 = pila.top(); pila.pop();
-            pila.push(pow(op1, op2));
+            pila.push(pow(op1, op2)); //pow c++11 este se usa para elevar un numero a su potencia
             break;
         case '*':
             op2 = pila.top(); pila.pop();
@@ -82,7 +82,7 @@ double evaluar(string p) {
             pila.push(op1 / op2);
             break;
         case '+':
-             op2 = pila.top(); pila.pop();
+            op2 = pila.top(); pila.pop();
             op1 = pila.top(); pila.pop();
             pila.push(op1 + op2);
             break;
@@ -95,23 +95,42 @@ double evaluar(string p) {
             string aux = "";
             while (p[i] != ' ')
                 aux += string(1, p[i++]);
-            pila.push(atof(aux.c_str()));
+            pila.push(atof(aux.c_str())); //atof c++11
             i--;
         }
     }
     return pila.top();
 }
 
+
 bool ExpCorrecta(string str) {
     //voy a agarrar el string y si la ultima posicion del string es alguno de los operadores retorno false, y si no retorno true
     int tam = str.size();
     char ultimo = str[tam-1];
+    char primero = str[0];
 
     //si solo se ingresa un dato
     if (tam == 1) {
         return false;
     }
-
+    
+    for (int i = 0; i < tam; i++)
+    {
+        switch (primero) {
+        case '^': return false;
+            break;
+        case '*': return false;
+            break;
+        case '/': return false;
+            break;
+        case '+': return false;
+            break;
+        case '%': return false;
+            break;
+        case ')': return false;
+            break;
+        }
+    }
 
     for (int i = 0; i < tam; i++)
     {
@@ -134,44 +153,12 @@ bool ExpCorrecta(string str) {
                 break;
         }
     }
+
+
+    
 }
 
-string ValidarVariables(string str) {
-    char valor;
-    for (int i = 0; i < str.size(); i++)
-    {
-        switch (str[i]) {
-        case 'a':
-            cout << "Ingrese valor de variable 'a': ";
-            cin >> valor;
-
-            str[i] = valor;
-            break;
-
-        case 'b':
-            cout << "Ingrese valor de variable 'b': ";
-            cin >> valor;
-
-            str[i] = valor;
-            break;
-
-        case 'c':
-            cout << "Ingrese valor de variable 'c': ";
-            cin >> valor;
-
-            str[i] = valor;
-            break;
-            
-        default:
-            break;
-        }
-    }
-
-    //cout << "Expresion nueva: " << str;
-    return str;
-}
-
-string ValidarVariables_V2(string str) {
+auto ValidarVariables_V2(string str) { // auto DeduceReturnType(); c++14
 
     char arrABC[] = {'a','b','c','d','e','f','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
     int arrSize = sizeof(arrABC) / sizeof(arrABC[0]);
@@ -195,7 +182,10 @@ string ValidarVariables_V2(string str) {
 string BuscarEnFile(string exp) {
 
     //crear arreglos de variable y valor con los datos que tiene el archivo de txt
-    ifstream file("variables.txt");
+
+    arch::path path = "variables.txt"; //c++17 filesystem feature
+
+    ifstream file(path);
     string str;
 
     string arrVariable[20];
@@ -207,9 +197,9 @@ string BuscarEnFile(string exp) {
     while (getline(file, str)) {
         size_t pos = 0;
         string token;
-        while ((pos = str.find(delimiter)) != string::npos) {
+        while ((pos = str.find(delimiter)) != string::npos) { //c++11 find
             token = str.substr(0, pos);
-            str.erase(0, pos + delimiter.length());
+            str.erase(0, pos + delimiter.length()); //c++11 erase
 
             //Agrega Variables
             arrVariable[i] = token;
@@ -226,7 +216,7 @@ string BuscarEnFile(string exp) {
     int arrSize = sizeof(arrVariable) / sizeof(arrVariable[0]);
     int cambio = 0;
 
-    string valor;
+    //decltype(auto) valor;
     do
     {
         while (x <= exp.size()) {
@@ -235,7 +225,7 @@ string BuscarEnFile(string exp) {
 
             if (cmp == arrVariable[cambio]) {
 
-                valor = to_string(arrValor[cambio]);
+                decltype(auto) valor = to_string(arrValor[cambio]); //c++14 decltype feature
                 exp.replace(x, valor.size(), valor);
             }
             x++;
@@ -260,12 +250,12 @@ void tests(string exp, double respuesta) {
         ans = evaluar(expresion);
 
         if (ans == respuesta) {
-            cout << exp << ":" << endl;
+            cout << exp << " -> " <<respuesta << ":" << endl;
             printf("\x1B[32mTest Passed\033[0m");
             ans = 0;
             cout << endl;
         }else if (respuesta != ans) {
-            cout << exp << ":" << endl;
+            cout << exp << " -> " << respuesta << ":" << endl;
             printf("\x1B[31mTest Failed \033[0m");
             cout << endl;
             ans = 0;
@@ -275,7 +265,7 @@ void tests(string exp, double respuesta) {
     
     
     if (ExpCorrecta(exp) == false) {
-        cout << exp << ":" << endl;
+        cout << exp << " -> " << respuesta << ":" << endl;
         printf("\x1B[31mTest Failed \033[0m");
         cout << endl;
         ans = 0;
@@ -286,10 +276,10 @@ void tests(string exp, double respuesta) {
 void unit_Tests() {
     //buenas
     tests("3^2", 9.0);
-    tests("100+x", 500.0);
+    tests("100-x", -300.0);
     tests("(7)+3+e", 12.71828);
     tests("50.0+y", 350.0);
-    tests("1+2+3+4+5+6+7+8+9", 45.0);
+    tests("100-(10/2)", 95);
     cout << endl;
 
     //malas
@@ -307,7 +297,7 @@ int main() {
 
     string s, p;
     int tam = s.size();
-    int Opcion;
+    auto Opcion = 0; // c++11 auto feature 
 
     do {
         cout << endl;
@@ -341,7 +331,7 @@ int main() {
                 if (ExpCorrecta(s)) {
                     p = convertir(s);
                     cout << "Posfija: " << p << endl;
-                    cout << "Evaluada: " << evaluar(p) << endl;
+                    cout << "Respuesta: " << evaluar(p) << endl;
                 }
                 else {
                     cout << "Expresion ingresada incorrectamente :(" << endl;
@@ -361,3 +351,8 @@ int main() {
        
     } while (Opcion != 3);
 }
+
+//c++ V11 5 features
+//c++ V14 2
+//c++ V17 1
+//c++ 20
